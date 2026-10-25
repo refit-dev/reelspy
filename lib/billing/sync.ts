@@ -7,6 +7,7 @@ import { ACTIVE_STATUSES } from "@/lib/billing/subscription";
 import { isAiTier, type AiTier } from "@/lib/ai/tier";
 import { coerceEntitlements, type Entitlements } from "@/lib/billing/entitlements";
 import { readPendingChange, type PendingPlanChange } from "@/lib/billing/schedule";
+import { getSubscriptionPeriodEnd } from '../../stripeSubscriptionPeriod';
 
 // Shared Stripe→subscriptions sync, extracted from the webhook so BOTH the
 // webhook (source of truth) and the admin "sync from Stripe" action write the
@@ -154,8 +155,8 @@ export async function syncSubscription(
   }
 
   const customEntitlements = !inactive && tier === "custom" ? customEntitlementsOf(sub) : null;
-  const periodEnd = sub.current_period_end
-    ? new Date(sub.current_period_end * 1000).toISOString()
+  const periodEnd = (getSubscriptionPeriodEnd(sub, (items) => items[0]))
+    ? new Date((getSubscriptionPeriodEnd(sub, (items) => items[0])) * 1000).toISOString()
     : null;
 
   // undefined = "couldn't determine" (leave the cache alone); null = "provably
