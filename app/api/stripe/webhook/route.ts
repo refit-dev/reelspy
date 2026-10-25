@@ -27,6 +27,7 @@ import {
   sendDisputeAlert,
   sendTrialEndingSoon,
 } from "@/lib/email/billing";
+import { getInvoicePriceId } from '../../../../stripeSubscriptionPeriod';
 
 // Stripe webhook (L6 / B1, hardened) — the SOLE writer of the subscriptions table
 // AND the single place every billing side effect (state change + customer email)
@@ -214,7 +215,7 @@ async function handleInvoiceUpcoming(
   // Name the pending plan too, if one is scheduled — this is the last email
   // before a deferred change takes effect, so it doubles as the final heads-up.
   let pendingTierName: string | null = null;
-  let currentTierName = (await planFromPriceId(invoice.lines?.data?.[0]?.price?.id)).name;
+  let currentTierName = (await planFromPriceId((invoice.lines?.data?.[0] == null ? undefined : getInvoicePriceId(invoice.lines?.data?.[0])))).name;
   if (userId) {
     try {
       const { data } = await admin
